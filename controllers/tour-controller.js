@@ -5,7 +5,20 @@ const {Path} = require('../const');
 
 const tours = JSON.parse(fs.readFileSync(`${__dirname}${Path.TourSimple}`));
 
+
 // TOURS
+exports.checkID = (req, res, next, id) => {
+    console.log(id);
+    const tour = tours.find((item) => item.id === +id);
+    if (!tour) {
+        return res.status(404).json({
+            status: 'ERROR',
+            message: `there is no tour with ID :  ${id}`,
+        })
+    }
+    next();
+}
+
 exports.getAllTours = (req, res) => {
     res
         .status(200)
@@ -20,12 +33,6 @@ exports.getAllTours = (req, res) => {
 exports.getTour = (req, res) => {
     const id = +req.params.id;
     const tour = tours.find((item) => item.id === id);
-    if (!tour) {
-        return res.status(404).json({
-            status: 'ERROR',
-            message: `there is no tour with ID :  ${id}`
-        })
-    }
     res
         .status(200)
         .json({
@@ -35,14 +42,6 @@ exports.getTour = (req, res) => {
 };
 
 exports.patchTour = (req, res) => {
-    const id = +req.params.id;
-    const tour = tours.find((item) => item.id === id);
-    if (!tour) {
-        return res.status(404).json({
-            status: 'ERROR',
-            message: `there is no tour with ID :  ${id}`
-        })
-    }
     const body = req.body;
     res
         .status(200)
@@ -67,14 +66,6 @@ exports.postTour = (req, res) => {
 
 
 exports.deleteTour = (req, res) => {
-    const id = +req.params.id;
-    const tour = tours.find((item) => item.id === id);
-    if (!tour) {
-        return res.status(404).json({
-            status: 'ERROR',
-            message: `there is no tour with ID :  ${id}`
-        })
-    }
     res
         .status(204)
         .json({
