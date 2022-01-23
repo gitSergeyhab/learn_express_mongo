@@ -19,6 +19,18 @@ exports.checkID = (req, res, next, id) => {
     next();
 }
 
+
+exports.checkBody = (req, res, next) => {
+    console.log('checkBody', req.body)
+    if (!req.body.name) {
+        return res.status(400).json({
+            status: 'ERROR',
+            message: `there is no name!`,
+        }) 
+    }
+    next();
+}
+
 exports.getAllTours = (req, res) => {
     res
         .status(200)
