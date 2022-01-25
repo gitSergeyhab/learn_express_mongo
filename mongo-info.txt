@@ -1,0 +1,5 @@
+Username: learn_mongo
+password: ut2-dw4-QL7-Qv5
+
+
+mongodb+srv://learn_mongo:ut2-dw4-QL7-Qv5@cluster0.ldnzm.mongodb.net/notuors
