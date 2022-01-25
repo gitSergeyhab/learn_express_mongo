@@ -6,11 +6,13 @@ const {
   postTour,
   patchTour,
   deleteTour,
+  aliasTopTours,
 } = require('../controllers/tour-controller');
 
 const router = express.Router();
 
 // router.param('id', checkID);
+router.route('/top-5-chip').get(aliasTopTours, getAllTours);
 
 router.route('/').get(getAllTours).post(postTour);
 
