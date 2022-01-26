@@ -101,3 +101,77 @@ exports.deleteTour = async (req, res) => {
     });
   }
 };
+
+exports.getTorStats = async (req, res) => {
+  try {
+    const stats = await Tour.aggregate([
+      {
+        $match: { ratingsAverage: { $gte: 4.5 } },
+      },
+      {
+        $group: {
+          _id: '$difficulty',
+          numTours: { $sum: 1 },
+          numRatting: { $sum: '$ratingsQuantity' },
+          avgRating: { $avg: '$ratingsAverage' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxRating: { $max: '$price' },
+        },
+      },
+      {
+        $sort: { numRatting: 1 },
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: stats,
+    });
+  } catch {
+    res.status(404).json({
+      status: 'Error',
+      message: 'invalid Data',
+    });
+  }
+};
+
+exports.getMonthlyPlan = async (req, res) => {
+  const year = +req.params.year;
+  try {
+    const plan = await Tour.aggregate([
+      {
+        $unwind: '$startDates', // зазбивает документ на несколько по полю - каждое поле в отднльный документ
+      },
+      {
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lt: new Date(`${year + 1}-01-01`),
+          },
+        },
+      },
+
+      {
+        $group: {
+          _id: { $month: '$startDates' }, // группировка по месяцам
+          numTourStart: { $sum: 1 }, // за каждый документ +1
+          tours: { $push: '$name' }, //добавить поле tours и запушить в него все поля  name соответствующего месяцу документа
+        },
+      },
+      {
+        $sort: { numTourStart: -1 },
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: plan,
+    });
+  } catch {
+    res.status(404).json({
+      status: 'Error',
+      message: 'invalid Data',
+    });
+  }
+};
