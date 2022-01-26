@@ -1,21 +1,5 @@
-const Tour = require('../models/tourModel');
-
-const EXCLUDED_FIELDS = ['page', 'sort', 'limit', 'fields'];
-const transformQueryParams = /\b(gte|gt|lte|lt)\b/g;
-
-const transformQuery = (query) => {
-  const queryStr = JSON.stringify(query);
-  const queryTrans = queryStr.replace(
-    transformQueryParams,
-    (match) => `$${match}`
-  );
-  return JSON.parse(queryTrans);
-};
-
-const makeSpace = (str) => (str ? str.split(',').join(' ') : '');
-const getSkip = (page, limit) => (page - 1) * limit;
-
-// TOURS
+const Tour = require('../models/tour-model');
+const APIFeatures = require('../utils/api-features');
 
 exports.aliasTopTours = (req, res, next) => {
   req.query.sort = '-price';
@@ -26,45 +10,13 @@ exports.aliasTopTours = (req, res, next) => {
 
 exports.getAllTours = async (req, res) => {
   try {
-    console.log(req.query);
+    const futures = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .selectFields()
+      .paginate();
 
-    const queryObj = { ...req.query };
-
-    EXCLUDED_FIELDS.forEach((item) => delete queryObj[item]);
-
-    const queryTrans = transformQuery(queryObj);
-
-    let query = Tour.find(queryTrans);
-
-    // 2. sort
-    const sort = makeSpace(req.query.sort);
-    if (sort) {
-      query = query.sort(sort);
-    } else {
-      query = query.sort('-createdAt');
-    }
-
-    //3 fields
-
-    const fields = makeSpace(req.query.fields);
-    if (fields) {
-      query = query.select(fields);
-    } else {
-      query = query.select('-__v');
-    }
-
-    // 4 pagination
-    const page = +req.query.page || 1;
-    const limit = +req.query.limit || 5;
-    const skip = getSkip(page, limit);
-    query = query.skip(skip).limit(limit);
-
-    const numTours = await Tour.countDocuments();
-    if (skip >= numTours) {
-      throw new Error('This page does not exist');
-    }
-
-    const tours = await query;
+    const tours = await futures.query;
 
     res.status(200).json({
       time: req.requestTime,
