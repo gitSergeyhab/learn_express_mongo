@@ -23,4 +23,11 @@ app.use((req, res, next) => {
 app.use(ApiRoute.Tours, tourRouter);
 app.use(ApiRoute.Users, userRouter);
 
+app.all('*', (req, res, next) => {
+  res.status(404).json({
+    status: 'Error',
+    message: `Can't find ${req.originalUrl}`,
+  });
+});
+
 module.exports = app;
