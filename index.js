@@ -1,7 +1,10 @@
 const express = require('express');
 const morgan = require('morgan');
+
+const AppError = require('./utils/app-error');
 const tourRouter = require('./routes/tour-route');
 const userRouter = require('./routes/user-route');
+const globalErrorHandler = require('./controllers/error-controller');
 const { ApiRoute } = require('./const');
 
 const app = express();
@@ -24,26 +27,13 @@ app.use(ApiRoute.Tours, tourRouter);
 app.use(ApiRoute.Users, userRouter);
 
 app.all('*', (req, res, next) => {
-  // res.status(404).json({
-  //   status: 'Error',
-  //   message: `Can't find ${req.originalUrl}`,
-  // });
+  // const err = new Error(`Can't find ${req.originalUrl}`);
+  // err.status = 'fail';
+  // err.statusCode = 404;
 
-  const err = new Error(`Can't find ${req.originalUrl}`);
-  err.status = 'fail';
-  err.statusCode = 404;
-
-  next(err);
+  next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));
 });
 
-app.use((err, req, res, next) => {
-  err.status = err.status || 'error';
-  err.statusCode = err.statusCode || 500;
-
-  res.status(err.statusCode).json({
-    status: err.status,
-    message: err.message,
-  });
-});
+app.use(globalErrorHandler);
 
 module.exports = app;
