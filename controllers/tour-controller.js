@@ -1,5 +1,6 @@
 const Tour = require('../models/tour-model');
 const APIFeatures = require('../utils/api-features');
+const AppError = require('../utils/app-error');
 const catchAsync = require('../utils/catch-async');
 
 exports.aliasTopTours = (req, res, next) => {
@@ -30,6 +31,10 @@ exports.getTour = catchAsync(async (req, res, next) => {
   const id = req.params.id;
 
   const tour = await Tour.findById(id);
+
+  if (!tour) {
+    return next(new AppError(`There is no tour with ID: ${id}`, 404));
+  }
   res.status(200).json({
     status: 'success',
     data: { tour },
@@ -37,10 +42,16 @@ exports.getTour = catchAsync(async (req, res, next) => {
 });
 
 exports.patchTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+  const id = req.params.id;
+
+  const tour = await Tour.findByIdAndUpdate(id, req.body, {
     new: true,
     runValidators: true,
   });
+
+  if (!tour) {
+    return next(new AppError(`There is no tour with ID: ${id}`, 404));
+  }
 
   res.status(200).json({
     status: 'success',
@@ -58,7 +69,13 @@ exports.postTour = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteTour = catchAsync(async (req, res, next) => {
-  await Tour.findByIdAndDelete(req.params.id);
+  const id = req.params.id;
+
+  const tour = await Tour.findByIdAndDelete(id);
+
+  if (!tour) {
+    return next(new AppError(`There is no tour with ID: ${id}`, 404));
+  }
 
   res.status(204).json({
     status: 'success',
